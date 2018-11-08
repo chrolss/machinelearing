@@ -8,12 +8,12 @@ Created on Thu Oct 25 16:39:58 2018
 import pandas as pd
 
 filepath = 'train.csv'
-df = pd.read_csv(filepath)
+df = pd.read_csv('train.csv')
 
 
-#%% Label encoding and N/A-filling before we create new features
+#%% N/A-filling before we create new features
 
-for i in range(0,81):
+for i in range(0,len(df.columns)):
     if (df.iloc[:,i].dtype == 'O'):
         df.iloc[:,i] = df.iloc[:,i].fillna("0")
     else:
@@ -29,11 +29,16 @@ df['GarageAge'] = df.YrSold - df.GarageYrBlt
 
 df = df.drop(columns=['YearRemodAdd','GarageYrBlt','YrSold','MoSold'])
 
-#%% Preprocessing
+#%% Preprocessing NEW EXPERIMENTAL : applying LabelEncoder() on the whole df gives us weird results, try to do it explicit
 
 from sklearn import preprocessing
 le = preprocessing.LabelEncoder() 
-df = df.apply(preprocessing.LabelEncoder().fit_transform)
+
+for i in range(0,len(df.columns)):
+    if (df.iloc[:,i].dtype == 'O'):
+        df.iloc[:,i].apply(preprocessing.LabelEncoder().fit_transform)
+
+"""df = df.apply(preprocessing.LabelEncoder().fit_transform) """
 
 #%% Train-test-split
 

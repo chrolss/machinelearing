@@ -4,32 +4,32 @@ Created on Thu Oct 25 16:39:58 2018
 
 @author: Christian Olsson
 """
-#%% Import basic libraries and data
+# Import basic libraries and data
 import pandas as pd
 
 filepath = 'train.csv'
 df = pd.read_csv('train.csv')
 
 
-#%% N/A-filling before we create new features
+# N/A-filling before we create new features
 
-for i in range(0,len(df.columns)):
-    if (df.iloc[:,i].dtype == 'O'):
-        df.iloc[:,i] = df.iloc[:,i].fillna("0")
+for i in range(0, len(df.columns)):
+    if df.iloc[:, i].dtype == 'O':
+        df.iloc[:, i] = df.iloc[:, i].fillna("0")
     else:
-        df.iloc[:,i] = df.iloc[:,i].fillna(df.iloc[:,i].mean())
+        df.iloc[:, i] = df.iloc[:, i].fillna(df.iloc[:, i].mean())
 
 
-#%% Raw work with the data
+# Raw work with the data
 
 """ Create a new column and drop unwanted ones, e.g. pure year columns should be dropped """
 
 df['YearRenSold'] = df.YrSold - df.YearRemodAdd
 df['GarageAge'] = df.YrSold - df.GarageYrBlt
 
-df = df.drop(columns=['YearRemodAdd','GarageYrBlt','YrSold','MoSold'])
+df = df.drop(columns=['YearRemodAdd', 'GarageYrBlt', 'YrSold', 'MoSold'])
 
-#%% Preprocessing NEW EXPERIMENTAL : applying LabelEncoder() on the whole df gives us weird results, try to do it explicit
+# Preprocessing NEW EXPERIMENTAL : applying LabelEncoder() on the whole df gives us weird results, try to do it explicit
 
 from sklearn import preprocessing
 le = preprocessing.LabelEncoder() 

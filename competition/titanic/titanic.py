@@ -91,8 +91,6 @@ train_X, test_X, train_y, test_y = train_test_split(X.values, y.values, test_siz
 my_model = xgb.XGBRegressor(n_estimators=1000, learning_rate=0.1)
 my_model.fit(train_X, train_y, early_stopping_rounds=500, eval_set=[(test_X, test_y)], verbose=False)
 
-# Make predictions
-
 predictions = my_model.predict(test_X)
 for i in range(len(predictions)):
     if predictions[i] > 0.5:
@@ -108,6 +106,16 @@ result = abs(test_y - predictions)
 print(1- result.sum()/len(result))
 
 
+#%% SVM
+
+clf = svm.SVC(gamma='scale')
+clf.fit(train_X, train_y)
+
+# Make predictions
+
+preds = clf.predict(test_X)
+result = abs(test_y - preds)
+print(1- result.sum()/len(result))
 #%% Work on test data 2
 
 dft = pd.read_csv(testFilepath)
@@ -138,15 +146,15 @@ dft['Mrs'] = 0
 dft['Miss'] = 0
 
 for i in range(len(dft)):
-    if dft.iloc[i,3].__contains__("Mr."):
+    if dft.iloc[i,2].__contains__("Mr."):
         dft.Mr[i] = 1
         dft.Mrs[i] = 0
         dft.Miss[i] = 0
-    elif dft.iloc[i,3].__contains__("Mrs."):
+    elif dft.iloc[i,2].__contains__("Mrs."):
         dft.Mr[i] = 0
         dft.Mrs[i] = 1
         dft.Miss[i] = 0
-    elif dft.iloc[i,3].__contains__("Miss."):
+    elif dft.iloc[i,2].__contains__("Miss."):
         dft.Mr[i] = 0
         dft.Mrs[i] = 0
         dft.Miss[i] = 1
@@ -163,7 +171,6 @@ PassId = dft['PassengerId']
 data = data.drop(['PassengerId'], axis=1)
 data = data.drop(['Embarked'], axis=1)
 data = data.drop(['Embarked_Encoded'], axis=1)
-data['Sex'] = data['Sex'].map({'male': 0, 'female': 1})
 
 predictions = my_model.predict(data.values)
 for i in range(len(predictions)):
@@ -173,7 +180,7 @@ for i in range(len(predictions)):
         predictions[i] = 0
 
 
-output = pd.DataFrame({'PassengerId': PassId['PassengerId'],
+output = pd.DataFrame({'PassengerId': dft['PassengerId'],
                        'Survived': predictions})
-
+output.Survived = output.Survived.astype(int)
 output.to_csv('submission.csv', index=False)

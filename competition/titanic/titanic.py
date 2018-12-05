@@ -108,7 +108,7 @@ result = abs(test_y - predictions)
 print(1- result.sum()/len(result))
 
 
-#%% Work on test data
+#%% Work on test data 2
 
 dft = pd.read_csv(testFilepath)
 dft['Sex'] = dft['Sex'].map({'male': 0, 'female': 1})

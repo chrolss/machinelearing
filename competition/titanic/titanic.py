@@ -14,10 +14,6 @@ trainFilepath = "competition/titanic/input/train.csv"
 
 df = pd.read_csv(trainFilepath)
 
-## working with the data, let's change some
-
-df['Sex'] = df['Sex'].map({'male': 0, 'female': 1})
-
 ## Correlation matrix
 
 sns.set(style='white')
@@ -35,9 +31,13 @@ df.isnull().sum()
 df = df.drop(['Cabin'], axis=1)
 df = df.drop(['Ticket'], axis=1)
 df = df.drop(['Fare'], axis=1)
+## Set missing embarked as the most common (Southampton)
+df['Embarked'] = df['Embarked'].fillna('S')## working with the data, let's change some
+## "Label encode" the sex of the passengers
+df['Sex'] = df['Sex'].map({'male': 0, 'female': 1})
+
 ## set missing ages as mean age
 df['Age'] = df['Age'].fillna(df['Age'].mean())
-df['Embarked'] = df['Embarked'].fillna('S')
 
 # One-hot encoding för
 Embarked_Encoder = LabelEncoder()
@@ -50,31 +50,47 @@ df = pd.concat([df, dfOneHot], axis=1)
 
 ## Feature engineering
 # 1 - travelling alone
-# 2 - Title
 
-df['Mr'] = 0
-df['Mrs'] = 0
-df['Miss'] = 0
+## ISSUE INITIALIING AN EMPTY ARRAY - WHY ?
+temp[0:len(df)] = 0
 
-for i in range(len(df)):
-    if df.iloc[i,3].__contains__("Mr."):
-        df.Mr[i] = 1
-        df.Mrs[i] = 0
-        df.Miss[i] = 0
-    elif df.iloc[i,3].__contains__("Mrs."):
-        df.Mr[i] = 0
-        df.Mrs[i] = 1
-        df.Miss[i] = 0
-    elif df.iloc[i,3].__contains__("Miss."):
-        df.Mr[i] = 0
-        df.Mrs[i] = 0
-        df.Miss[i] = 1
+for i in range(len(temp)):
+    if df.SibSp[i] == 0 & df.Parch[i] == 0:
+        temp[i] = 1
     else:
-        df.Mr[i] = 0
-        df.Mrs[i] = 0
-        df.Miss[i] = 0
+        temp[i] = 0
+
+dfTravelAlone = pd.DataFrame(temp, columns = ['Alone'])
+df = pd.concat([df, dfTravelAlone], axis=1)
 
 
+# 2 - Title
+Mr = df.SibSp.values
+Mrs = df.Parch.values
+Miss = df.Sex.values
+
+for j in range(len(df)):
+    if df.iloc[j,3].__contains__("Mr."):
+        Mr[j] = 1
+        Mrs[j] = 0
+        Miss[j] = 0
+    elif df.iloc[j,3].__contains__("Mrs."):
+        Mr[j] = 0
+        Mrs[j] = 1
+        Miss[j] = 0
+    elif df.iloc[j,3].__contains__("Miss."):
+        Mr[j] = 0
+        Mrs[j] = 0
+        Miss[j] = 1
+    else:
+        Mr[j] = 0
+        Mrs[j] = 0
+        Miss[j] = 0
+
+dfMr = pd.DataFrame(Mr, columns = ['Mr'])
+dfMrs = pd.DataFrame(Mrs, columns = ['Mrs'])
+dfMiss = pd.DataFrame(Miss, columns = ['Miss'])
+df = pd.concat([df, dfMr, dfMrs, dfMiss], axis=1)
 # Train Test Split and data prepping
 
 data = df.drop(['Name'],axis=1)

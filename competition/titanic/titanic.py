@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 from sklearn import svm
+from sklearn.linear_model import LogisticRegression
 
 testFilepath = "competition/titanic/input/test.csv"
 trainFilepath = "competition/titanic/input/train.csv"
@@ -52,7 +53,7 @@ df = pd.concat([df, dfOneHot], axis=1)
 # 1 - travelling alone
 
 ## ISSUE INITIALIING AN EMPTY ARRAY - WHY ?
-temp[0:len(df)] = 0
+temp = [0] * len(df)
 
 for i in range(len(temp)):
     if df.SibSp[i] == 0 & df.Parch[i] == 0:
@@ -65,9 +66,9 @@ df = pd.concat([df, dfTravelAlone], axis=1)
 
 
 # 2 - Title
-Mr = df.SibSp.values
-Mrs = df.Parch.values
-Miss = df.Sex.values
+Mr = [0] * len(df)
+Mrs = [0] * len(df)
+Miss = [0] * len(df)
 
 for j in range(len(df)):
     if df.iloc[j,3].__contains__("Mr."):
@@ -100,12 +101,12 @@ data = data.drop(['Embarked'], axis=1)
 data = data.drop(['Embarked_Encoded'], axis=1)
 y = data['Survived']
 X = data.drop(['Survived'],axis=1)
-train_X, test_X, train_y, test_y = train_test_split(X.values, y.values, test_size = .30)
+train_X, test_X, train_y, test_y = train_test_split(X.values, y.values, test_size = .20)
 
 #%% XGBoost Train model
 
-my_model = xgb.XGBRegressor(n_estimators=1000, learning_rate=0.1)
-my_model.fit(train_X, train_y, early_stopping_rounds=500, eval_set=[(test_X, test_y)], verbose=False)
+my_model = xgb.XGBRegressor(n_estimators=20000, learning_rate=0.8)
+my_model.fit(train_X, train_y, early_stopping_rounds=300, eval_set=[(test_X, test_y)], verbose=False)
 
 predictions = my_model.predict(test_X)
 for i in range(len(predictions)):
@@ -121,16 +122,21 @@ plt.plot(test_y - predictions)
 result = abs(test_y - predictions)
 print(1- result.sum()/len(result))
 
+## Logistic Regression
+
+clf = LogisticRegression(random_state=0, solver='lbfgs', max_iter=500, multi_class='multinomial').fit(train_X, train_y)
+log_predict = clf.predict(test_X)
+
+result = abs(test_y - log_predict)
+print(1- result.sum()/len(result))
 
 #%% SVM
 
-clf = svm.SVC(gamma='scale')
-clf.fit(train_X, train_y)
+svmMod = svm.SVC(gamma='scale')
+svmMod.fit(train_X, train_y)
 
-# Make predictions
-
-preds = clf.predict(test_X)
-result = abs(test_y - preds)
+svm_predict = svmMod.predict(test_X)
+result = abs(test_y - svm_predict)
 print(1- result.sum()/len(result))
 #%% Work on test data 2
 
@@ -154,31 +160,45 @@ dfOneHot = pd.DataFrame(Emb, columns = ["Emb_"+str(int(i)) for i in range(Emb.sh
 dft = pd.concat([dft, dfOneHot], axis=1)
 
 ## Feature engineering
-# 1 - travelling alone
-# 2 - Title
+temp = [0] * len(df)
 
-dft['Mr'] = 0
-dft['Mrs'] = 0
-dft['Miss'] = 0
-
-for i in range(len(dft)):
-    if dft.iloc[i,2].__contains__("Mr."):
-        dft.Mr[i] = 1
-        dft.Mrs[i] = 0
-        dft.Miss[i] = 0
-    elif dft.iloc[i,2].__contains__("Mrs."):
-        dft.Mr[i] = 0
-        dft.Mrs[i] = 1
-        dft.Miss[i] = 0
-    elif dft.iloc[i,2].__contains__("Miss."):
-        dft.Mr[i] = 0
-        dft.Mrs[i] = 0
-        dft.Miss[i] = 1
+for i in range(len(temp)):
+    if df.SibSp[i] == 0 & df.Parch[i] == 0:
+        temp[i] = 1
     else:
-        dft.Mr[i] = 0
-        dft.Mrs[i] = 0
-        dft.Miss[i] = 0
+        temp[i] = 0
 
+dfTravelAlone = pd.DataFrame(temp, columns = ['Alone'])
+df = pd.concat([df, dfTravelAlone], axis=1)
+
+
+# 2 - Title
+Mr = [0] * len(df)
+Mrs = [0] * len(df)
+Miss = [0] * len(df)
+
+for j in range(len(df)):
+    if df.iloc[j,3].__contains__("Mr."):
+        Mr[j] = 1
+        Mrs[j] = 0
+        Miss[j] = 0
+    elif df.iloc[j,3].__contains__("Mrs."):
+        Mr[j] = 0
+        Mrs[j] = 1
+        Miss[j] = 0
+    elif df.iloc[j,3].__contains__("Miss."):
+        Mr[j] = 0
+        Mrs[j] = 0
+        Miss[j] = 1
+    else:
+        Mr[j] = 0
+        Mrs[j] = 0
+        Miss[j] = 0
+
+dfMr = pd.DataFrame(Mr, columns = ['Mr'])
+dfMrs = pd.DataFrame(Mrs, columns = ['Mrs'])
+dfMiss = pd.DataFrame(Miss, columns = ['Miss'])
+dft = pd.concat([df, dfMr, dfMrs, dfMiss], axis=1)
 
 # Train Test Split and data prepping
 
@@ -188,12 +208,15 @@ data = data.drop(['PassengerId'], axis=1)
 data = data.drop(['Embarked'], axis=1)
 data = data.drop(['Embarked_Encoded'], axis=1)
 
+data = data.reindex(df.columns, axis=1)
+
 predictions = my_model.predict(data.values)
 for i in range(len(predictions)):
     if predictions[i] > 0.5:
         predictions[i] = 1
     else:
         predictions[i] = 0
+
 
 
 output = pd.DataFrame({'PassengerId': dft['PassengerId'],

@@ -23,4 +23,3 @@ dfc = df[df['Län'] != 'ÖVRIGA']
 
 # Plot some things
 _ = plt.xticks(rotation=45)
-_ = plt.plot(dfc[dfc['År' == 2018]['Län'], dfc[dfc['År' == 2018]['medelbelopp'])

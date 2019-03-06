@@ -11,13 +11,19 @@ labels = df.iloc[:,:1]
 
 # Plot an image
 
-img = images.iloc[1,:].as_matrix()
+img = images.iloc[1,:].values
 img = img.reshape((28,28))
 plt.imshow(img,cmap='gray')
 
 # plot a histogram
 
-plt.hist(images.iloc[1,:].as_matrix())
+plt.hist(images.iloc[1,:].values)
+
+# Create lambda function to change value
+
+l = lambda x: 255 if x > 100 else 0
+
+df.apply(l, result_type='broadcast')
 
 # threshold and create new dataframe
 

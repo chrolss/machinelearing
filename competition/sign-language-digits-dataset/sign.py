@@ -8,7 +8,7 @@ y_filepath = 'competition/sign-language-digits-dataset/Y.npy'
 
 def showpicture(imgarray, row):
 
-    plt.imshow(imgarray[row, :].reshape(100, 100))
+    plt.imshow(imgarray[row, :].reshape(100, 100), cmap='gray')
 
 
 npX = np.load(X_filepath)
@@ -18,3 +18,7 @@ X = pd.DataFrame(data=npX)
 y = pd.DataFrame(data=npy)
 
 plt.hist(X.iloc[0], 10)
+
+l = lambda x: 255 if x > 100 else 0
+
+

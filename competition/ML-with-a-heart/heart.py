@@ -14,6 +14,8 @@ from keras.callbacks import EarlyStopping
 from sklearn.preprocessing import StandardScaler
 
 # Create ECDP (Emperical cumulative distribution function)
+
+
 def ecdf(data):
     """Compute ECDF for a one-dimensional array of measurements."""
     # Number of data points: n

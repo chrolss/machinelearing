@@ -22,3 +22,4 @@ plt.hist(X.iloc[0], 10)
 l = lambda x: 255 if x > 100 else 0
 
 
+

@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from keras import Sequential
@@ -20,8 +21,8 @@ def showimage(dataframe, imnumber):
 traindata = 'competition/MNIST/input/train.csv'
 df = pd.read_csv(traindata)
 
-images = df.iloc[:,1:]
-labels = df.iloc[:,:1]
+images = df.iloc[:, 1:]
+labels = df.iloc[:, :1]
 labels = labels.astype('category')
 
 # Plot an image
@@ -32,7 +33,7 @@ plt.imshow(img, cmap='gray')
 
 # plot a histogram
 
-plt.hist(images.iloc[1,:].values)
+plt.hist(images.iloc[1, :].values)
 
 # Create lambda function and applymap to change dataframe values
 
@@ -69,3 +70,13 @@ Xev = X_test
 Xev = Xev.reshape(-1,n_cols)
 Yev = pd.get_dummies(y_test).values
 eval = model.evaluate(Xev, Yev, verbose=True)
+
+# Test the predictions
+
+testval = X_test[0, :]
+testval = testval.reshape(-1, n_cols)
+
+predictions = model.predict_proba(testval)
+
+# Save keras model
+model.save_weights("competition/MNIST/model_190310.h5")

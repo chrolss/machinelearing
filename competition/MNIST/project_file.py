@@ -67,7 +67,7 @@ model.fit(Xnp, Ynp, epochs=30, callbacks=[early_stopping_monitor])
 
 # Evaluate model
 Xev = X_test
-Xev = Xev.reshape(-1,n_cols)
+Xev = Xev.reshape(-1, n_cols)
 Yev = pd.get_dummies(y_test).values
 eval = model.evaluate(Xev, Yev, verbose=True)
 

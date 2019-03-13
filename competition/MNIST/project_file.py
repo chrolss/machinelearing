@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from keras import Sequential
 from keras.layers import Dense
 from keras.callbacks import EarlyStopping
+from keras.wrappers.scikit_learn import KerasClassifier
 
 
 # Define function
@@ -49,6 +50,18 @@ Xnp = X_train
 Xnp = Xnp.reshape(-1, n_cols)
 Ynp = pd.get_dummies(y_train)
 
+
+## TUTORIAL ONLINE FOR MULTI CLASS CLASSIFICATION
+
+model.add(Dense(n_cols, activation='relu', input_shape=(n_cols,)))
+model.add(Dense(n_cols, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+estimator = KerasClassifier(build_fn=model, epochs=10, batch_size=5)
+estimator.fit(Xnp, Ynp, epochs=10, callbacks=[early_stopping_monitor])
+##
+
 # Build the neural network
 
 model = Sequential()
@@ -63,7 +76,7 @@ model.compile(optimizer='rmsprop',
 early_stopping_monitor = EarlyStopping(patience=2)
 
 # Fit the model
-model.fit(Xnp, Ynp, epochs=30, callbacks=[early_stopping_monitor])
+model.fit(Xnp, Ynp, epochs=10, callbacks=[early_stopping_monitor])
 
 # Evaluate model
 Xev = X_test
@@ -78,5 +91,14 @@ testval = testval.reshape(-1, n_cols)
 
 predictions = model.predict_proba(testval)
 
+def predictimage(image):
+    image = image.reshape(-1, n_cols)
+    plt.imshow(image.reshape(28, 28),cmap='gray')
+    predictions = model.predict(image)
+    return print(predictions)
+
 # Save keras model
 model.save_weights("competition/MNIST/model_190310.h5")
+
+# Load model weights
+model.load_weights('competition/MNIST/model_190310.h5')

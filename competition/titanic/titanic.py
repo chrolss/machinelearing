@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
-import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 from sklearn import svm
 from sklearn.linear_model import LogisticRegression

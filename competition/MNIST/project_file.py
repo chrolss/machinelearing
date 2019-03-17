@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+import keras
 from keras import Sequential
-from keras.layers import Dense
 from keras.callbacks import EarlyStopping
-from keras.wrappers.scikit_learn import KerasClassifier
-
+from keras.layers import Dense, Dropout, Activation
+from keras.optimizers import SGD
 
 # Define function
 
@@ -38,50 +38,40 @@ plt.hist(images.iloc[1, :].values)
 
 # Create lambda function and applymap to change dataframe values
 
-images = images.applymap(lambda x: 255 if x > 100 else 0)
+images = images.applymap(lambda x: 255 if x > 150 else 0)
 
 # Create train test split
 
-X_train, X_test, y_train, y_test = train_test_split(images.values, labels, test_size=0.3)
+X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.3)
 n_rows, n_cols = X_train.shape
 
-# Shape the data
-Xnp = X_train
+# Shape and scale the data
+Xnp = X_train.values
+Xnp = Xnp / 255
 Xnp = Xnp.reshape(-1, n_cols)
-Ynp = pd.get_dummies(y_train)
+Ynp = keras.utils.to_categorical(y_train, num_classes=10)
 
-
-## TUTORIAL ONLINE FOR MULTI CLASS CLASSIFICATION
-
-model.add(Dense(n_cols, activation='relu', input_shape=(n_cols,)))
-model.add(Dense(n_cols, activation='relu'))
-model.add(Dense(10, activation='softmax'))
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-estimator = KerasClassifier(build_fn=model, epochs=10, batch_size=5)
-estimator.fit(Xnp, Ynp, epochs=10, callbacks=[early_stopping_monitor])
-##
-
-# Build the neural network
-
+# Setup the network and corresponding layers
 model = Sequential()
-model.add(Dense(n_cols, activation='relu', input_shape=(n_cols,)))
+model.add(Dense(n_cols, activation='relu', input_dim=784))
+model.add(Dropout(0.5))
 model.add(Dense(n_cols*2, activation='relu'))
-model.add(Dense(n_cols, activation='relu'))
+model.add(Dropout(0.5))
 model.add(Dense(10, activation='softmax'))
 
-model.compile(optimizer='rmsprop',
-              loss='categorical_crossentropy',
-              metrics=['accuracy'])
-early_stopping_monitor = EarlyStopping(patience=2)
+# Define optimizer and compile model
+sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
-# Fit the model
-model.fit(Xnp, Ynp, epochs=10, callbacks=[early_stopping_monitor])
+# Fit the model to the training data
+early_stopping_monitor = EarlyStopping(patience=2)
+model.fit(Xnp, Ynp, epochs=5, callbacks=[early_stopping_monitor])
 
 # Evaluate model
-Xev = X_test
+Xev = X_test.values
+Xev = Xev / 255
 Xev = Xev.reshape(-1, n_cols)
-Yev = pd.get_dummies(y_test).values
+Yev = keras.utils.to_categorical(y_test, num_classes=10)
 eval = model.evaluate(Xev, Yev, verbose=True)
 
 # Test the predictions
@@ -92,13 +82,15 @@ testval = testval.reshape(-1, n_cols)
 predictions = model.predict_proba(testval)
 
 def predictimage(image):
-    image = image.reshape(-1, n_cols)
-    plt.imshow(image.reshape(28, 28),cmap='gray')
-    predictions = model.predict(image)
-    return print(predictions)
+    Xp = image.values
+    Xp = Xp / 255
+    Xp = Xp.reshape(-1, n_cols)
+    plt.imshow(Xp.reshape(28, 28),cmap='gray')
+    predictions = model.predict_proba(Xp)
+    return print(predictions*100)
 
 # Save keras model
-model.save_weights("competition/MNIST/model_190310.h5")
+model.save_weights("competition/MNIST/model_190317.h5")
 
 # Load model weights
 model.load_weights('competition/MNIST/model_190310.h5')

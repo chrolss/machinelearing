@@ -93,4 +93,4 @@ def predictimage(image):
 model.save_weights("competition/MNIST/model_190317.h5")
 
 # Load model weights
-model.load_weights('competition/MNIST/model_190310.h5')
+model.load_weights('competition/MNIST/model_190317.h5')

@@ -20,3 +20,5 @@ query = 'SELECT * FROM BPAWorkQueueItem'
 rs = con.execute(query)
 raw = pd.DataFrame(rs.fetchall(), columns=columnnames)
 
+data = raw.data
+

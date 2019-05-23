@@ -6,6 +6,7 @@ import lightgbm as lgb
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
 
 # Any results you write to the current directory are saved as output.
 
@@ -27,6 +28,13 @@ _ = plt.show()
 # 3. muggy-turquoise-donkey-important
 # 4. hasty-blue-sheep-contributor
 # 5. stinky-olive-kiwi-golden
+
+# PCA Analysis
+
+features = df_raw.drop(columns='target')
+features = features.drop(columns='id')
+X = PCA(0.99).fit_transform(features)
+
 
 # Do the competition with limited dataset scope
 

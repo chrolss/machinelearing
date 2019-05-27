@@ -1,32 +1,20 @@
-import nltk as nlp
 import tweepy
-from tweepy import OAuthHandler
-import json
-import pandas as pd
 
-# Read and save the consumer and access keys
 
-key_file_path = 'learn/twitter/twitter_keys'
-keys = []
-with open(key_file_path) as file:
-    keys = file.read().splitlines()
+class StreamListenerToDataFrame(tweepy.StreamListener):
+    # A stream listener that is supposed to catch statuses and write them to a dataframe
 
-consumer_key = keys[0]
-consumer_secret = keys[1]
-access_token = keys[2]
-access_secret = keys[3]
-
-# Setup OAuthentication and access tokens
-auth = OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_secret)
-api = tweepy.API(auth)
-
-# Create a tweepy StreamListener
-
-class MyStreamListener(tweepy.StreamListener):
+    def __init__(self, api=None):
+        super(StreamListenerToDataFrame, self).__init__()
+        self.num_tweets = 0
 
     def on_status(self, status):
-        print(status.text)
+        if self.num_tweets < 5:
+            self.num_tweets += 1
+            print(status)
+            return True
+        else:
+            return False
 
     def on_error(self, status_code):
         if status_code == 420:
@@ -36,6 +24,9 @@ class MyStreamListener(tweepy.StreamListener):
         # returning non-False reconnects the stream, with backoff.
 
 
-myStreamListener = MyStreamListener()
-myStream = tweepy.Stream(auth=api.auth, listener=myStreamListener)
-myStream.filter(track=['#eu'])
+def deploy_stream_listener_to_df(_auth, _track):
+    my_stream_listener = StreamListenerToDataFrame()
+    my_stream = tweepy.Stream(auth=_auth.auth, listener=my_stream_listener)
+    my_stream.filter(track=[_track])
+
+    return True

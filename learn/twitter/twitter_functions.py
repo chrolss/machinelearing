@@ -3,6 +3,7 @@ import json
 import tweepy
 from tweepy import OAuthHandler
 
+
 def get_auth_token(_filepath):
     # Takes a text file containing four lines of twitter app credential keys and returns
     # a tweepy token to be used in future functions
@@ -102,3 +103,33 @@ def get_tweets_from_user(_auth, _user):
          'created_at', 'user', 'language'])
 
     return df_tweet
+
+
+def tweet_json_to_df(_filepath):
+    temporary_tweet_list = []
+    with open('tweet_dump.txt', encoding='utf-8') as json_file:
+        all_data = json.load(json_file)
+        for each_dictionary in all_data:
+            tweet_id = each_dictionary['id']
+            text = each_dictionary['text']
+            favorite_count = each_dictionary['favorite_count']
+            retweet_count = each_dictionary['retweet_count']
+            created_at = each_dictionary['created_at']
+            screen_name = each_dictionary['user']['screen_name']
+            language = each_dictionary['lang']
+            temporary_tweet_list.append({'tweet_id': str(tweet_id),
+                                        'text': str(text),
+                                         'favorite_count': int(favorite_count),
+                                         'retweet_count': int(retweet_count),
+                                         'created_at': created_at,
+                                         'user': screen_name,
+                                         'language': language
+                                         })
+        # print(my_demo_list)
+        df_tweet = pd.DataFrame(temporary_tweet_list, columns=
+        ['tweet_id', 'text',
+         'favorite_count', 'retweet_count',
+         'created_at', 'user', 'language'])
+
+    return df_tweet
+

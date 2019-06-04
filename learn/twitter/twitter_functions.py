@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import tweepy
 from tweepy import OAuthHandler
+import re
 
 
 def get_auth_token(_filepath):
@@ -87,7 +88,7 @@ def get_tweets_from_user(_auth, _user):
             retweet_count = each_dictionary['retweet_count']
             created_at = each_dictionary['created_at']
             screen_name = each_dictionary['user']['screen_name']
-            language = each_dictionary['metadata']['iso_language_code']
+            language = each_dictionary['lang']
             my_demo_list.append({'tweet_id': str(tweet_id),
                                  'text': str(text),
                                  'favorite_count': int(favorite_count),
@@ -106,6 +107,7 @@ def get_tweets_from_user(_auth, _user):
 
 
 def tweet_json_to_df(_filepath):
+    # I think this is the one that works, since not all tweet objects include the metadata field
     temporary_tweet_list = []
     with open('tweet_dump.txt', encoding='utf-8') as json_file:
         all_data = json.load(json_file)
@@ -133,3 +135,15 @@ def tweet_json_to_df(_filepath):
 
     return df_tweet
 
+
+def regex_search(_pattern, _series):
+    temp_dict = dict()
+    for i in range(len(_series)):
+        res = re.findall(_pattern, _series.iloc[i])
+        for item in res:
+            if item in temp_dict:
+                temp_dict[item] += 1
+            else:
+                temp_dict[item] = 1
+
+    return temp_dict

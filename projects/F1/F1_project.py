@@ -6,9 +6,16 @@ import os
 import re
 folder_path = 'projects/F1/input/'
 
-for file in os.listdir(folder_path):
-    name = re.search(r'[A-z]+', file)
-    globals()[name.group(0)] = pd.read_csv(folder_path + file, encoding='latin-1')
+# Lazy way of creating the dataframes from .csv-files
+# for file in os.listdir(folder_path):
+#     name = re.search(r'[A-z]+', file)
+#     globals()[name.group(0)] = pd.read_csv(folder_path + file, encoding='latin-1')
+
+lapTimes = pd.read_csv(folder_path + 'laptimes.csv', encoding='latin-1')
+races = pd.read_csv(folder_path + 'races.csv', encoding='latin-1')
+drivers = pd.read_csv(folder_path + 'drivers.csv', encoding='latin-1')
+results = pd.read_csv(folder_path + 'results.csv', encoding='latin-1')
+circuits = pd.read_csv(folder_path + 'circuits.csv', encoding='latin-1')
 
 _ = plt.xticks(rotation=45)
 _ = sns.countplot(x='nationality', data=drivers)
@@ -22,7 +29,7 @@ _ = plt.subplot(2,1,1)
 _ = plt.title('Monaco 2017')
 _ = sns.lineplot(x='lap', y='position', data=gp, hue='driverId')
 
-# RaceId = 933 is Barcelona Grand Prix, Year 2017
+# RaceId = 973 is Barcelona Grand Prix, Year 2017
 _ = plt.subplot(2,1,2)
 _ = plt.title('Barcelona 2017')
 bgp = lapTimes[lapTimes.raceId == 973]
@@ -40,15 +47,16 @@ for position in temp[temp.raceId == 973].position:
     if position == 0:
         DNF += 1
 
-def count_dnf(_df, _raceId):
-    DNF = 0
-    temp = _df
-    # temp['position'] = _df['position'].fillna(0)
-    for position in temp[temp.raceId == _raceId].position:
-        if position == 0:
-            DNF += 1
 
-    return DNF
+def count_dnf(_df, _raceid):
+    dnf_count = 0
+    temp_df = _df
+    # temp['position'] = _df['position'].fillna(0)
+    for iter_position in temp[temp_df.raceId == _raceid].position:
+        if iter_position == 0:
+            dnf_count += 1
+
+    return dnf_count
 
 
 # 2. Number of overtakings
@@ -69,6 +77,9 @@ for driver in competing_drivers:
             previousPosition = lapPosition
             overtakings += 1
 
+# Somewhere here you want to remove the DNFs in the following formula:
+# overtakings_to_remove = DNF_position_at_DNF_lap - number_of_drivers_left_at_DNF_lap
+
 # Divide the overtakings varibable with 2 and you have the number of totala overtakings. However, since each driver
 # improves their "lap-position" if another driver quits the race, then these "improvements" should not be included.
 # To account for this, one needs to count "how many drivers improved their lap-position due to a DNF ?
@@ -82,11 +93,24 @@ for driver in competing_drivers:
 races17 = races[races.year == 2017]
 
 # We add some "reader-friendly" features to distinguish the races
-races17 = pd.merge(races17, circuits ,how='left',on='circuitId')
+races17 = pd.merge(races17, circuits, how='left', on='circuitId')
 
 # For easy calculation, we remoove the nan in lapTimes and replace with "0" to represent DNF
 lapTimes['position'] = lapTimes['position'].fillna(0)
 
 # Create the first feature, number of DNF
 dnf_list = [count_dnf(results, raceId) for raceId in races17.raceId]
-races17['DNF'] =
+races17['DNF'] = dnf_list
+
+
+
+
+
+
+# The example race, Spanish Grand Prix 2017 can be found on the wiki site
+# https://en.wikipedia.org/wiki/2017_Spanish_Grand_Prix
+# From this site, we see that if the winner is more than 1 lap ahead of you when he/she finishes, then you are
+# "retired" from the race and you will by default race less laps than them.
+# The rating of the races (according to racefans.net), can be found on this page
+# https://www.racefans.net/rate-the-race/f1-fanatic-top-100/
+#

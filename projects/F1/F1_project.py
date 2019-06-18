@@ -84,7 +84,6 @@ for driver in competing_drivers:
             overtakings += 1
 
 
-
 ### 3. Variance in the race positions
 # Instead of trying to count the specific number of overtakings, It might be nicer to capture the variance
 # in the lap positions in a race. Let's take Barcelona 2017 as an example:

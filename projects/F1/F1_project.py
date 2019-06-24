@@ -115,13 +115,49 @@ def get_std(_laptimes, _raceId):
 
     return np.max(list_of_std), np.min(list_of_std), np.mean(list_of_std)
 
+### 4. Top 5 driver battle
+# The hypothesis here is that a good battle between the top 5 drivers will result in a higher race rating than one where
+# the top 5 never really fight, and the standings remain the same throughout the race.
+# One can look at the final score, but it might be better to look and see how the race progressed for those who ended
+# the race in position 1 - 5. E.g. Did you start as 1 and finish as 1 ? = BORING. Did you start as 3 but ended as 1?
+# = NICE. First idea one might get is to just check the start position and compare to final standing. However, this may
+# only show that one person did one pitstop overtaking and won a couple of positions, and then kept that throughout the
+# race. A better one is to see "how was the race for those who ended up in 1 - 5 position?" We might actually check the
+# variance again, but weight it according to 1 (high weight), 5 (lower weight)
 
-# Somewhere here you want to remove the DNFs in the following formula:
-# overtakings_to_remove = DNF_position_at_DNF_lap - number_of_drivers_left_at_DNF_lap
+barca_id = 973  # Barcelona
+top_5 = results[results.raceId == 973][results.position < 6].sort_values(['position'], ascending=True)
+top_5_var = []
 
-# Divide the overtakings varibable with 2 and you have the number of totala overtakings. However, since each driver
-# improves their "lap-position" if another driver quits the race, then these "improvements" should not be included.
-# To account for this, one needs to count "how many drivers improved their lap-position due to a DNF ?
+for driver in top_5.driverId:
+    t5_var = np.var(lapTimes[lapTimes.driverId == driver][lapTimes.raceId == barca_id].position)
+    top_5_var.append(t5_var)
+
+top5score = 0
+for itervar in top_5_var:
+    top5score = top5score + itervar
+
+
+def get_top_5_battle(_raceid, _results, _laptimes):
+    f_top_5 = _results[_results.raceId == 973][_results.position < 6].sort_values(['position'], ascending=True)
+    f_top_5_var = []
+
+    for f_driver in f_top_5.driverId:
+        f_t5_var = np.var(_laptimes[_laptimes.driverId == f_driver][_laptimes.raceId == _raceid].position)
+        f_top_5_var.append(f_t5_var)
+
+    f_top5score = 0
+    for f_itervar in f_top_5_var:
+        f_top5score = f_top5score + f_itervar
+
+    return f_top5score
+
+
+### 5. Rank vs. position
+# Is there a link between "a good race" and the drivers rank?
+
+top5name = pd.merge(top_5, drivers,how='inner',on='driverId')
+top5name[['driverId', 'surname','position','rank']]
 
 # Start the analysis
 # We will create a dataframe with some original features from other dataframes, as well as some of our own created
@@ -160,6 +196,9 @@ races17['mean_std'] = mean_std
 # This shows that Azerbaijan has a crazy high max variance, which might be that someone starts in a good position,
 # then "breaks" and ends up at a high position?
 
+### Create the third feature - top 5 drivers
+
+top5_score = [get_top_5_battle(raceId, results, lapTimes) for raceId in races17.raceId]
 
 # The example race, Spanish Grand Prix 2017 can be found on the wiki site
 # https://en.wikipedia.org/wiki/2017_Spanish_Grand_Prix

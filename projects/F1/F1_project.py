@@ -139,7 +139,7 @@ for itervar in top_5_var:
 
 
 def get_top_5_battle(_raceid, _results, _laptimes):
-    f_top_5 = _results[_results.raceId == 973][_results.position < 6].sort_values(['position'], ascending=True)
+    f_top_5 = _results[_results.raceId == _raceid][_results.position < 6].sort_values(['position'], ascending=True)
     f_top_5_var = []
 
     for f_driver in f_top_5.driverId:
@@ -159,7 +159,7 @@ def get_top_5_battle(_raceid, _results, _laptimes):
 top5name = pd.merge(top_5, drivers,how='inner',on='driverId')
 top5name[['driverId', 'surname','position','rank']]
 
-# Start the analysis
+####### Start the analysis ########
 # We will create a dataframe with some original features from other dataframes, as well as some of our own created
 # features. The feature engineering part will consist of: number of overtakings, number of DNFs, average speed,
 # total race duration, "top 5 fight" (not yet defined, but will tell if one driver is "too superior" to the competition
@@ -199,6 +199,7 @@ races17['mean_std'] = mean_std
 ### Create the third feature - top 5 drivers
 
 top5_score = [get_top_5_battle(raceId, results, lapTimes) for raceId in races17.raceId]
+races17['top_5'] = top5_score
 
 # The example race, Spanish Grand Prix 2017 can be found on the wiki site
 # https://en.wikipedia.org/wiki/2017_Spanish_Grand_Prix

@@ -17,7 +17,7 @@ api = get_auth_token(key_file_path)
 # Play with the stream
 
 json_dump = 'tweet_dump.txt'
-list_of_stream_tweets = deploy_stream_listener_to_df(api, '#metoo', 50)
+list_of_stream_tweets = deploy_stream_listener_to_df(api, '@realdonaldtrump', 50)
 df = tweet_json_to_df(json_dump)
 
 

@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from scipy.stats import linregress # Use this for statistical numbers of stuff
 import os
 import re
 folder_path = 'projects/F1/input/'

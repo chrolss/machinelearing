@@ -29,10 +29,9 @@ def ecdf(data):
 
     return x, y
 
-
-train_values = 'competition/ML-with-a-heart/input/train_values.csv'
-train_labels = 'competition/ML-with-a-heart/input/train_labels.csv'
-sample_submission = 'competition/ML-with-a-heart/input/submission_format.csv'
+train_values = 'input/train_values.csv'
+train_labels = 'input/train_labels.csv'
+sample_submission = 'input/submission_format.csv'
 
 X = pd.read_csv(train_values)
 y = pd.read_csv(train_labels)
@@ -73,7 +72,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 # Setup neural network
 n_rows, n_cols = X_train.shape
 Xnp = X_train
-Xnp = Xnp.reshape(-1,n_cols)
+Xnp = Xnp.reshape(-1, n_cols)
 Ynp = pd.get_dummies(y_train).values
 
 model = Sequential()
@@ -88,13 +87,13 @@ model.fit(Xnp, Ynp, epochs=30, callbacks=[early_stopping_monitor])
 
 # Evaluate model
 Xev = X_test
-Xev = Xev.reshape(-1,n_cols)
+Xev = Xev.reshape(-1, n_cols)
 Yev = pd.get_dummies(y_test).values
 eval = model.evaluate(Xev, Yev, verbose=True)
 
 # Make competition predictions
 
-test_values = 'competition/ML-with-a-heart/input/test_values.csv'
+test_values = 'input/test_values.csv'
 testval = pd.read_csv(test_values)
 testval.thal = testval['thal'].astype('category')
 testval = pd.concat([testval, pd.get_dummies(testval.thal, 'thal')], axis=1)
@@ -113,5 +112,8 @@ output = pd.DataFrame({'patient_id': patient_id_test,
                        'heart_disease_present': predictions[:, 1]})
 output.to_csv('submission_2.csv', index=False)
 
-# Save keras model
-model.save_weights("competition/ML-with-a-heart/model_39207.h5")
+# Save keras model, model weights and scaler
+model.save_weights("models/model_weights_220719.h5")
+model_json = model.to_json()
+with open("models/model.json", "w") as json_file:
+    json_file.write(model_json)

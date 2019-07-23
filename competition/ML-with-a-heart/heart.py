@@ -117,3 +117,6 @@ model.save_weights("models/model_weights_220719.h5")
 model_json = model.to_json()
 with open("models/model.json", "w") as json_file:
     json_file.write(model_json)
+
+# Save full model in one file
+model.save('models/full_model_190723.h5')

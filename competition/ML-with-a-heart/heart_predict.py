@@ -13,27 +13,20 @@ from keras.layers import Dense
 from keras.callbacks import EarlyStopping
 from sklearn.preprocessing import StandardScaler
 from keras.models import model_from_json
+from keras.models import load_model
 import json
 
 # Load the model
-
-json_file = open('models/model.json', 'r')
-loaded_model_json = json_file.read()
-json_file.close()
-model = model_from_json(loaded_model_json)
-# load weights into new model
-model.load_weights("models/model_weights_220719.h5")
-print("Loaded model from disk")
+model = load_model('models/full_model_190723.h5')
 
 # Load the test values
-
 with open('input/test_patient.json', 'r') as file:
     data = json.load(file)
 
 testval = pd.DataFrame(data, index=[0])
 
-# When reading a larger test file, we get at least one of each thal type, but now
-# with only one patient, we have to manually fill in the dummy labels
+# When reading a larger test file, we get at least one of each thal type,
+# but with only one patient, we have to manually fill in the dummy labels
 thal_value = testval.thal.iloc[0]
 testval['thal_reversible_defect'] = 0
 testval['thal_fixed_defect'] = 0
@@ -66,8 +59,6 @@ X = X.drop(['patient_id'], axis=1)
 scaler = StandardScaler()
 X = scaler.fit_transform(X)
 
-patient_id = testval.patient_id
-testval = testval.drop(['patient_id'], axis=1)
 testval = scaler.transform(testval)
 testval = testval.reshape(-1, 15)
 
